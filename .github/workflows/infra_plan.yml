@@ -13,7 +13,6 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ${{ inputs.path }}
         
     steps:
       - name: Checkout
@@ -37,11 +36,15 @@ jobs:
       
       - name: Terraform Validate
         id: validate
-        run: terraform validate
+        run: |
+          cd terraform/${{ matrix.path }}
+          terraform validate
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan
+        run: |
+          cd terraform/${{ matrix.path }}
+          terraform plan
         continue-on-error: true
 
       - name: Terraform Plan Status
