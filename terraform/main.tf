@@ -6,7 +6,7 @@ terraform {
     }
   }
 
-  backend "remote" {
+  backend "s3" {
     bucket = "madurai87349821"
     key    = "maduraibackend.tfstate"
     region = "us-east-1"
