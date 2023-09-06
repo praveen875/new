@@ -43,6 +43,8 @@ jobs:
         id: plan
         run: |
           cd terraform/${{ matrix.path }}
+          echo "+Current Directory"
+          pwd
           terraform plan
         continue-on-error: true
 
