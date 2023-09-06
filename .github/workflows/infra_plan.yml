@@ -45,6 +45,7 @@ jobs:
           cd terraform/${{ matrix.path }}
           echo "+Current Directory"
           pwd
+          ls -l
           terraform plan
         continue-on-error: true
 

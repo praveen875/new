@@ -54,4 +54,5 @@ jobs:
         run: |
           cd terraform/${{ matrix.path }}
           pwd
+          ls -l
           terraform apply -auto-approve
