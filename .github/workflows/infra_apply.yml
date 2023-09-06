@@ -1,32 +1,17 @@
 ### Reusable workflow to plan terraform deployment, create artifact and upload to workflow artifacts for consumption ###
 name: "Terraform Apply Workflow"
 on:
-  workflow_call:
-    inputs:
-      path:
-        description: 'Specifies the path of the root terraform module.'
-        required: true
-        type: string
-      tf_version:
-        description: 'Specifies version of Terraform to use. e.g: 1.1.0 Default=latest.'
-        required: false
-        type: string
-        default: latest
-      gh_environment:
-        description: 'Specifies the GitHub deployment environment.'
-        required: false
-        type: string
-        default: null
+  push:
+   branches:
+     - "main"
       
 
 jobs:
   build-plan:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.gh_environment }}
     defaults:
       run:
         shell: bash
-        working-directory: ${{ inputs.path }}
         
     steps:
       - name: Checkout
@@ -34,8 +19,7 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.2
-        with:
-          terraform_version: ${{ inputs.tf_version }}
+        
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -51,11 +35,15 @@ jobs:
       
       - name: Terraform Validate
         id: validate
-        run: terraform validate
+        run: |
+          cd terraform/${{ matrix.path }}
+          terraform validate
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan
+        run: |
+          cd terraform/${{ matrix.path }}
+          terraform plan
         continue-on-error: true
 
       - name: Terraform Plan Status
