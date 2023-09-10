@@ -23,9 +23,10 @@ jobs:
       - name: Find Modified Files in PR
         timeout-minutes: 1
         run: |
-         REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}'); OWNER=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $1}'); PULL_REQ_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH); HAS_NEXT_PAGE=true; AFTER_CURSOR=""; MODIFIED_TFENV_DIR=""; MODIFIED_TFSCRIPTS=""
+         REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}'); OWNER=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $1}');  HAS_NEXT_PAGE=true; AFTER_CURSOR=""; MODIFIED_TFENV_DIR=""; MODIFIED_TFSCRIPTS=""
          echo $GITHUB_REPOSITORY
          echo $REPO_NAME
+         echo $OWNER
         
          while [ $HAS_NEXT_PAGE != "false" ]; do
           GRAPHQL_RESPONSE=$(
