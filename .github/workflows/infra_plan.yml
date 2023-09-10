@@ -29,34 +29,15 @@ jobs:
          echo $OWNER
          echo $GITHUB_EVENT_PATH
          echo $PULL_REQ_NUMBER
+         GRAPHQL_RESPONSE=$(curl -L \
+         -H "Accept: application/vnd.github+json" \
+         -H "Authorization: Bearer ${{ secrets.GIT_TOKEN }}'" \
+         -H "X-GitHub-Api-Version: 2022-11-28" \
+         https://api.github.com/repos/praveen875/new/pulls )
+         echo $GRAPHQL_RESPONSE
         
-         while [ $HAS_NEXT_PAGE != "false" ]; do
-          GRAPHQL_RESPONSE=$(
-            curl -s --location --request POST 'https://api.github.com/graphql' \
-            --header 'Authorization: token ${{ secrets.GIT_TOKEN }}' \
-            --header 'Accept: application/vnd.github.v4.idl' \
-            --header 'Content-Type: application/json' \
-            --data-raw '{"query":"query($repo: String!, $owner: String!, $pull_req_num: Int!, $afterCursor: String!) {\r\n    repository(name: $repo, owner: $owner) {\r\n        pullRequest(number: $pull_req_num) {\r\n            files(first: 100, after: $afterCursor) {\r\n                pageInfo {\r\n                    endCursor\r\n                    startCursor\r\n                    hasNextPage\r\n                }\r\n                nodes {\r\n                    path\r\n                }\r\n                # edges {\r\n                #     cursor\r\n                #     node { \r\n                #         path\r\n                #     }\r\n                # }\r\n                \r\n            }\r\n        }\r\n    }\r\n}","variables":{"repo":"'"$REPO_NAME"'","owner":"'"$OWNER"'","pull_req_num":'$(( PULL_REQ_NUMBER ))',"afterCursor":"'"$AFTER_CURSOR"'"}}'
-          )
-          echo $GRAPHQL_RESPONSE
-          MODIFIED_TFENV_DIR+=$(echo $GRAPHQL_RESPONSE | jq --raw-output '.data.repository.pullRequest.files.nodes[].path' | { grep tfEnv || true; } | awk -F/ '{print $2}' | sort -u); MODIFIED_TFENV_DIR+=" "
-          MODIFIED_TFSCRIPTS+=$(echo $GRAPHQL_RESPONSE | jq --raw-output '.data.repository.pullRequest.files.nodes[].path' | { grep tfScripts || true; } | awk -F/ '{print $2}' | sort -u); MODIFIED_TFSCRIPTS+=" "
-          HAS_NEXT_PAGE=$(echo $GRAPHQL_RESPONSE | jq --raw-output '.data.repository.pullRequest.files.pageInfo.hasNextPage')
-          AFTER_CURSOR=$(echo $GRAPHQL_RESPONSE | jq --raw-output '.data.repository.pullRequest.files.pageInfo.endCursor')
-         done
-
-         if [ -n "$(echo "$MODIFIED_TFSCRIPTS" | tr -d '[:space:]')" ]; then
-          ACCOUNTS=$(cd ${GITHUB_WORKSPACE}/tfEnv/; ls -N | sed 's/\///')
-         else
-          ACCOUNTS=$MODIFIED_TFENV_DIR
-         fi
-
-         echo "[+] Accounts to be modified: ${ACCOUNTS}"
-
-         echo "ACCOUNT_DIRS<<EOF" >> $GITHUB_ENV
-         echo "${ACCOUNTS}" >> $GITHUB_ENV
-         echo "EOF" >> $GITHUB_ENV
-   
+         
+        
 
 
       - name: Configure AWS Credentials
