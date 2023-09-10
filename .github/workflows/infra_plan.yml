@@ -35,7 +35,7 @@ jobs:
             curl -s --location --request POST 'https://api.github.com/graphql' \
             --header 'Authorization: token ${{ secrets.GIT_TOKEN }}' \
             --header 'Accept: application/vnd.github.v4.idl' \
-            --header 'Content-Type: application/json' 
+            --header 'Content-Type: application/json' \
             --data-raw '{"query":"query($repo: String!, $owner: String!, $pull_req_num: Int!, $afterCursor: String!) {\r\n    repository(name: $repo, owner: $owner) {\r\n        pullRequest(number: $pull_req_num) {\r\n            files(first: 100, after: $afterCursor) {\r\n                pageInfo {\r\n                    endCursor\r\n                    startCursor\r\n                    hasNextPage\r\n                }\r\n                nodes {\r\n                    path\r\n                }\r\n                # edges {\r\n                #     cursor\r\n                #     node { \r\n                #         path\r\n                #     }\r\n                # }\r\n                \r\n            }\r\n        }\r\n    }\r\n}","variables":{"repo":"'"$REPO_NAME"'","owner":"'"$OWNER"'","pull_req_num":'$(( PULL_REQ_NUMBER ))',"afterCursor":"'"$AFTER_CURSOR"'"}}'
           )
           echo $GRAPHQL_RESPONSE
