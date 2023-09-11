@@ -20,34 +20,19 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.2
 
-      
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v39
         
-      - name: Find Modified Files in PR
-        timeout-minutes: 1
+        # To compare changes between the current commit and the last pushed remote commit set `since_last_remote_commit: true`. e.g
+        # with:
+        #   since_last_remote_commit: true 
+
+      - name: List all changed files
         run: |
-         REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}'); OWNER=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $1}'); PULL_REQ_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH); HAS_NEXT_PAGE=true; AFTER_CURSOR=""; MODIFIED_TFENV_DIR=""; MODIFIED_TFSCRIPTS=""
-         echo $GITHUB_REPOSITORY
-         echo $REPO_NAME
-         echo $OWNER
-         echo $GITHUB_EVENT_PATH
-         echo $PULL_REQ_NUMBER
-         githubjson=`cat $GITHUB_EVENT_PATH`
-         echo $githubjson
-         curl -L \
-         -H "Accept: application/vnd.github+json" \
-         -H "Authorization: Bearer ${{ secrets.GIT_TOKEN }}" \
-         -H "X-GitHub-Api-Version: 2022-11-28" \
-         https://api.github.com/repos/praveen875/new/pulls 
-         GRAPHQL_RESPONSE=$(
-            curl -s --location --request POST 'https://api.github.com/graphql' \
-            --header 'Authorization: token ${{ secrets.GIT_TOKEN }}' \
-            --header 'Accept: application/vnd.github.v4.idl' \
-            --header 'Content-Type: application/json' \
-            --data-raw '{"query":"query($repo: String!, $owner: String!, $pull_req_num: Int!, $afterCursor: String!) {\r\n    repository(name: $repo, owner: $owner) {\r\n        pullRequest(number: $pull_req_num) {\r\n            files(first: 100, after: $afterCursor) {\r\n                pageInfo {\r\n                    endCursor\r\n                    startCursor\r\n                    hasNextPage\r\n                }\r\n                nodes {\r\n                    path\r\n                }\r\n                # edges {\r\n                #     cursor\r\n                #     node { \r\n                #         path\r\n                #     }\r\n                # }\r\n                \r\n            }\r\n        }\r\n    }\r\n}","variables":{"repo":"'"$REPO_NAME"'","owner":"'"$OWNER"'","pull_req_num":'$(( PULL_REQ_NUMBER ))',"afterCursor":"'"$AFTER_CURSOR"'"}}'
-          )
-         echo $GRAPHQL_RESPONSE
-        
-         
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done
         
 
 
