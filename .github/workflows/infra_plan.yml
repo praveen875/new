@@ -20,27 +20,20 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.2
 
-      - name: Get changed files
-        uses: jitterbit/get-changed-files@v1
-        id: abc
-        with:
-          format: space-delimited
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Printing
+      - name: Find Modified Files in PR
+        timeout-minutes: 1
         run: |
-          echo "All:"
-          echo "${{ steps.abc.outputs.all }}"
-          echo "Added:"
-          echo "${{ steps.abc.outputs.added }}"
-          echo "Removed:"
-          echo "${{ steps.abc.outputs.removed }}"
-          echo "Renamed:"
-          echo "${{ steps.abc.outputs.renamed }}"
-          echo "Modified:"
-          echo "${{ steps.abc.outputs.modified }}"
-          echo "Added+Modified:"
-          echo "${{ steps.abc.outputs.added_modified }}"
-        
+         REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}'); OWNER=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $1}'); PULL_REQ_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH); HAS_NEXT_PAGE=true; AFTER_CURSOR=""; MODIFIED_TFENV_DIR=""; MODIFIED_TFSCRIPTS=""
+         echo $PULL_REQ_NUMBER
+         while [ $HAS_NEXT_PAGE != "false" ]; do
+         GRAPHQL_RESPONSE=$(
+            curl -s --location --request POST 'https://api.github.com/graphql' \
+            --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' \
+            --header 'Accept: application/vnd.github.v4.idl' \
+            --header 'Content-Type: application/json' \
+            --data-raw '{"query":"query($repo: String!, $owner: String!, $pull_req_num: Int!, $afterCursor: String!) {\r\n    repository(name: $repo, owner: $owner) {\r\n        pullRequest(number: $pull_req_num) {\r\n            files(first: 100, after: $afterCursor) {\r\n                pageInfo {\r\n                    endCursor\r\n                    startCursor\r\n                    hasNextPage\r\n                }\r\n                nodes {\r\n                    path\r\n                }\r\n                # edges {\r\n                #     cursor\r\n                #     node { \r\n                #         path\r\n                #     }\r\n                # }\r\n                \r\n            }\r\n        }\r\n    }\r\n}","variables":{"repo":"'"$REPO_NAME"'","owner":"'"$OWNER"'","pull_req_num":'$(( PULL_REQ_NUMBER ))',"afterCursor":"'"$AFTER_CURSOR"'"}}'
+          )
+         echo $GRAPHQL_RESPONSE
 
 
       - name: Configure AWS Credentials
