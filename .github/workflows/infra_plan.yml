@@ -20,11 +20,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.2
 
-      - name: Dump GitHub context
-        env:
-         GITHUB_CONTEXT: ${{ toJson(GITHUB_EVENT_PATH) }}
-        run: |
-         echo "$GITHUB_CONTEXT"
+      
         
       - name: Find Modified Files in PR
         timeout-minutes: 1
@@ -35,7 +31,8 @@ jobs:
          echo $OWNER
          echo $GITHUB_EVENT_PATH
          echo $PULL_REQ_NUMBER
-         echo '${{ fromJson(/home/runner/work/_temp/_github_workflow/event.json) }}'
+         githubjson=`cat $GITHUB_EVENT_PATH`
+         echo $githubjson
          curl -L \
          -H "Accept: application/vnd.github+json" \
          -H "Authorization: Bearer ${{ secrets.GIT_TOKEN }}" \
